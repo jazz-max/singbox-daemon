@@ -1,0 +1,120 @@
+{
+  "log": {
+    "level": "warn",
+    "timestamp": true
+  },
+
+  "dns": {
+    "servers": [
+      {
+        "type": "udp",
+        "tag": "dns-ru",
+        "server": "77.88.8.8"
+      },
+      {
+        "type": "https",
+        "tag": "dns-proxy",
+        "server": "1.1.1.1",
+        "detour": "proxy"
+      }
+    ],
+    "rules": [
+      {
+        "rule_set": ["ru-direct-domains"],
+        "action": "route",
+        "server": "dns-ru"
+      }
+    ],
+    "final": "dns-proxy",
+    "strategy": "ipv4_only",
+    "independent_cache": true
+  },
+
+  "inbounds": [
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "address": ["172.18.0.1/30"],
+      "mtu": 9000,
+      "auto_route": true,
+      "strict_route": false,
+      "stack": "mixed"
+    }
+  ],
+
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "direct"
+    }
+  ],
+
+  "route": {
+    "auto_detect_interface": true,
+    "default_domain_resolver": {
+      "server": "dns-ru",
+      "strategy": "ipv4_only"
+    },
+    "final": "proxy",
+    "rule_set": [
+      {
+        "type": "local",
+        "tag": "ru-ip",
+        "format": "binary",
+        "path": "/var/lib/sing-box/rulesets/ru-ip.srs"
+      },
+      {
+        "type": "local",
+        "tag": "ru-direct-domains",
+        "format": "source",
+        "path": "/var/lib/sing-box/rulesets/ru-direct-domains.json"
+      }
+    ],
+    "rules": [
+      {
+        "action": "sniff",
+        "timeout": "300ms"
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          { "protocol": "dns" },
+          { "port": 53 }
+        ],
+        "action": "hijack-dns"
+      },
+      {
+        "ip_is_private": true,
+        "action": "route",
+        "outbound": "direct"
+      },
+      {
+        "ip_cidr": ["127.0.0.0/8", "169.254.0.0/16", "224.0.0.0/4"],
+        "action": "route",
+        "outbound": "direct"
+      },
+      {
+        "rule_set": ["ru-direct-domains"],
+        "action": "route",
+        "outbound": "direct"
+      },
+      {
+        "action": "resolve",
+        "strategy": "ipv4_only"
+      },
+      {
+        "rule_set": ["ru-ip"],
+        "action": "route",
+        "outbound": "direct"
+      }
+    ]
+  },
+
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "path": "/var/lib/sing-box/cache.db"
+    }
+  }
+}

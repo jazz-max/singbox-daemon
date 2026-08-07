@@ -1,0 +1,65 @@
+{
+  "version": 3,
+  "rules": [
+    {
+      "domain_suffix": [
+        ".ru",
+        ".su",
+        ".xn--p1ai",
+
+        "vk.com",
+        "vk.me",
+        "userapi.com",
+        "vkuserlive.com",
+        "vk-cdn.net",
+        "vkuseraudio.net",
+        "vkuservideo.net",
+        "vkontakte.com",
+
+        "yandex.net",
+        "yastatic.net",
+        "yandex.com",
+        "ya.cc",
+        "yandexcloud.net",
+
+        "sberbank.com",
+        "sber.pro",
+        "sberdevices.com",
+        "tbank.ru",
+        "tinkoff.com",
+        "alfabank.com",
+        "vtb.com",
+        "gazprombank.com",
+        "raiffeisen.com",
+        "open.com",
+        "psbank.com",
+
+        "mironline.ru",
+        "nspk.com",
+        "yoomoney.ru",
+        "qiwi.com",
+
+        "ozon.com",
+        "ozonusercontent.com",
+        "wildberries.com",
+        "wbbasket.ru",
+        "avito.st",
+        "2gis.com",
+        "dns-shop.com",
+
+        "kinopoisk.com",
+        "okko.tv",
+        "premier.one",
+        "rutube.com",
+        "start.ru",
+        "more.tv",
+
+        "cdek.global",
+        "hh.com",
+        "habr.com",
+        "gismeteo.com",
+        "mos.com"
+      ]
+    }
+  ]
+}

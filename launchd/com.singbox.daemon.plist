@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.singbox.daemon</string>
+
+    <!-- Глобальные флаги sing-box идут ДО подкоманды run.
+         -D задаёт рабочий каталог (там же лежит cache.db),
+         -c указывает единственный файл конфигурации. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/sing-box</string>
+        <string>-D</string>
+        <string>/var/lib/sing-box</string>
+        <string>-c</string>
+        <string>/etc/sing-box/config.json</string>
+        <string>run</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/var/lib/sing-box</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Пауза между перезапусками. Без неё падающий на старте sing-box
+         (например, из-за битого конфига) уходит в бесконечный цикл
+         рестартов и забивает лог за секунды. -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>/var/log/sing-box/sing-box.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/var/log/sing-box/sing-box.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <!-- Interactive не даёт системе троттлить процесс: для TUN-демона,
+         через который идёт весь трафик, фоновый приоритет означал бы
+         заметные лаги под нагрузкой. -->
+    <key>ProcessType</key>
+    <string>Interactive</string>
+
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65536</integer>
+    </dict>
+
+    <key>HardResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>65536</integer>
+    </dict>
+</dict>
+</plist>

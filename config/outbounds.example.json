@@ -1,0 +1,64 @@
+{
+  "_комментарий": [
+    "ПРИМЕР структуры секретного файла. Реальный кладите в config/secrets/outbounds.json —",
+    "этот путь игнорируется git'ом. Здесь показан вид выгрузки Hiddify (полный конфиг",
+    "sing-box); render-config.py возьмёт из него только ключ outbounds.",
+    "Можно положить и просто массив outbound-объектов, без обёртки.",
+    "Служебные outbound'ы (direct/block/dns) будут отброшены автоматически:",
+    "direct есть в шаблоне, тип dns удалён в sing-box 1.13, block заменён на action reject."
+  ],
+
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "proxy",
+      "outbounds": ["auto", "Finland-01", "Netherlands-01"],
+      "default": "auto"
+    },
+    {
+      "type": "urltest",
+      "tag": "auto",
+      "outbounds": ["Finland-01", "Netherlands-01"],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "vless",
+      "tag": "Finland-01",
+      "server": "ЗАМЕНИТЕ.example.com",
+      "server_port": 443,
+      "uuid": "00000000-0000-0000-0000-000000000000",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ЗАМЕНИТЕ.example.com",
+        "utls": { "enabled": true, "fingerprint": "chrome" },
+        "reality": {
+          "enabled": true,
+          "public_key": "ЗАМЕНИТЕ",
+          "short_id": "ЗАМЕНИТЕ"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "Netherlands-01",
+      "server": "ЗАМЕНИТЕ2.example.com",
+      "server_port": 443,
+      "password": "ЗАМЕНИТЕ",
+      "tls": {
+        "enabled": true,
+        "server_name": "ЗАМЕНИТЕ2.example.com"
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "direct"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ]
+}

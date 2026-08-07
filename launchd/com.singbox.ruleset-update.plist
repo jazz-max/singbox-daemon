@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.singbox.ruleset-update</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/libexec/sing-box/build-ruleset.sh</string>
+    </array>
+
+    <!-- Раз в сутки в 04:30. Если Mac в это время спал, launchd выполнит
+         задание один раз после пробуждения — пропуск не накапливается. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>4</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <!-- НЕ запускать при загрузке: список уже установлен инсталлятором,
+         а лишняя закачка на старте задерживала бы поднятие сети. -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>DEST_DIR</key>
+        <string>/var/lib/sing-box/rulesets</string>
+        <key>SING_BOX</key>
+        <string>/usr/local/bin/sing-box</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/var/log/sing-box/ruleset-update.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/var/log/sing-box/ruleset-update.log</string>
+
+    <key>WorkingDirectory</key>
+    <string>/var/lib/sing-box</string>
+
+    <!-- Фоновая задача: пусть система сама решает, когда ей удобно
+         тратить на неё диск и сеть. -->
+    <key>ProcessType</key>
+    <string>Background</string>
+
+    <key>LowPriorityIO</key>
+    <true/>
+</dict>
+</plist>

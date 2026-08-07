@@ -1,0 +1,22 @@
+# --- СЕКРЕТЫ ПОДПИСКИ: никогда не коммитить ---
+config/secrets/
+config/secrets.json
+config/outbounds.json
+*.secret.json
+
+# --- Собранный конфиг (содержит подставленные секреты) ---
+config/config.generated.json
+
+# --- Скачанные и сгенерированные списки ---
+build/
+rulesets/*.srs
+rulesets/*.srs.prev
+rulesets/ru-ip.json
+rulesets/.cache/
+
+# --- Логи и замеры ---
+*.log
+benchmark-results/
+
+# --- macOS ---
+.DS_Store
