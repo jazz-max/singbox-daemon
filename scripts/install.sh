@@ -60,6 +60,15 @@ if [ "$ENABLE_DAEMON" -eq 1 ]; then
     "$BIN_PATH" check -c "${ETC_DIR}/config.json" || die "конфиг не проходит проверку, автозапуск не включён"
     ok "конфиг валиден"
 
+    # emergency-reset.sh отключает службы через launchctl disable, и этот
+    # запрет переживает bootout/bootstrap: на отключённой службе bootstrap
+    # молча не даст процессу стартовать. Поэтому снимаем запрет явно.
+    for label in com.singbox.daemon com.singbox.ruleset-update; do
+        if launchctl print-disabled system 2>/dev/null | grep -q "\"${label}\" => disabled"; then
+            launchctl enable "system/${label}" && ok "снят запрет на запуск ${label}"
+        fi
+    done
+
     # bootout перед bootstrap делает операцию идемпотентной
     launchctl bootout system/com.singbox.daemon 2>/dev/null || true
     launchctl bootstrap system "$DAEMON_PLIST"

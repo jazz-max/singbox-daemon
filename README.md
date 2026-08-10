@@ -115,6 +115,77 @@ launchctl print system/com.singbox.daemon | head -20
 
 ---
 
+## Управление демоном
+
+### Перезапуск
+
+```bash
+sudo launchctl kickstart -k system/com.singbox.daemon
+```
+
+`-k` убивает текущий процесс и запускает заново. Разрыв связи на 1–2 секунды.
+Это основной способ — нужен всякий раз, когда туннель «залип»: например
+провайдер обрубил и вернул интернет, сменилась сеть, ноутбук вышел из сна с
+другим Wi-Fi.
+
+**Почему `KeepAlive` в такой ситуации не спасает.** Он перезапускает процесс,
+только если тот *завершился*. При обрыве канала sing-box жив и здоров — мёртвой
+оказывается TCP-сессия до сервера, а этого launchd не видит. Поэтому пересоздать
+соединение нужно вручную.
+
+### Остановка и запуск
+
+```bash
+sudo launchctl bootout system/com.singbox.daemon      # остановить (туннель пропадёт)
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.singbox.daemon.plist
+```
+
+### Состояние
+
+```bash
+launchctl print system/com.singbox.daemon | grep -E 'state|pid|runs|last exit'
+```
+
+* `state = running` и растущий `runs` при неизменном `pid` — норма
+* `runs` увеличивается сам по себе — демон падает и перезапускается, смотрите
+  `/var/log/sing-box/sing-box.err.log`
+
+### Служба не запускается после аварийного отката
+
+`emergency-reset.sh` намеренно выполняет `launchctl disable`, чтобы сломанный
+демон не поднялся при следующей загрузке. Этот запрет переживает
+`bootout`/`bootstrap`: служба просто не стартует, без внятной ошибки.
+
+Проверить и снять:
+
+```bash
+sudo launchctl print-disabled system | grep singbox
+sudo launchctl enable system/com.singbox.daemon
+sudo ./scripts/install.sh --enable-daemon
+```
+
+`install.sh --enable-daemon` снимает запрет сам, так что достаточно последней
+команды.
+
+### Туннель держится на preflight
+
+Если `preflight.sh` был запущен и не закрыт, sing-box работает как его дочерний
+процесс, а не как служба. Признак:
+
+```bash
+ps -o ppid= -p "$(pgrep -x sing-box)"   # родитель — bash ./preflight.sh
+launchctl list | grep singbox           # пусто
+```
+
+Туннель в этом случае живёт ровно до закрытия терминала и не переживёт
+перезагрузку. Закройте preflight (Enter или Ctrl-C) и поднимите службу:
+
+```bash
+sudo ./scripts/install.sh --enable-daemon
+```
+
+---
+
 ## Диагностика
 
 ### Состояние службы
