@@ -58,8 +58,8 @@ sudo ./scripts/install.sh --enable-daemon
 ### 1. Российский IP идёт напрямую, остальное через прокси
 
 ```bash
-curl -s https://api.ipify.org   # зарубежный сервис -> должен показать IP прокси
-curl -s https://2ip.ru/         # российский сервис  -> должен показать ваш IP
+curl -s https://api.ipify.org                  # зарубежный сервис -> должен показать IP прокси
+curl -s https://yandex.ru/internet/api/v0/ip   # российский сервис  -> должен показать ваш IP
 ```
 
 Адреса обязаны **различаться**. Совпали — split-tunneling не работает.

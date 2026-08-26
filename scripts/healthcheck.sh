@@ -7,7 +7,7 @@
 #
 # Смысл главной проверки: два эхо-сервиса должны показать РАЗНЫЕ адреса.
 #   api.ipify.org (зарубежный) -> идёт через туннель  -> покажет IP прокси
-#   2ip.ru        (российский) -> идёт напрямую       -> покажет ваш IP от провайдера
+#   yandex.ru     (российский) -> идёт напрямую       -> покажет ваш IP от провайдера
 # Если оба показали одно и то же — split-tunneling не работает.
 
 set -uo pipefail
@@ -78,7 +78,7 @@ head_ "Разделение трафика (главная проверка)"
 fetch_retry() {
     local url="$1" attempts="${2:-3}" out=""
     for i in $(seq 1 "$attempts"); do
-        out="$(curl -sS -m "$TIMEOUT" "$url" 2>/dev/null | tr -d '[:space:]')"
+        out="$(curl -sS -m "$TIMEOUT" "$url" 2>/dev/null | tr -d '[:space:]"')"
         if [ -n "$out" ]; then
             [ "$i" -gt 1 ] && printf '  \033[33m·\033[0m %s ответил с %d-й попытки\n' "$url" "$i"
             printf '%s' "$out"
@@ -90,7 +90,7 @@ fetch_retry() {
 }
 
 ip_foreign="$(fetch_retry https://api.ipify.org 3)"
-ip_russian="$(fetch_retry https://2ip.ru/ 3)"
+ip_russian="$(fetch_retry https://yandex.ru/internet/api/v0/ip 3)"
 
 if [ -z "$ip_foreign" ]; then
     bad "зарубежный сервис недоступен — интернет через туннель не работает"
@@ -99,9 +99,9 @@ else
 fi
 
 if [ -z "$ip_russian" ]; then
-    bad "российский сервис (2ip.ru) недоступен — прямой выход не работает"
+    bad "российский сервис (yandex.ru) недоступен — прямой выход не работает"
 else
-    ok "российский сервис (2ip.ru) видит: ${ip_russian}"
+    ok "российский сервис (yandex.ru) видит: ${ip_russian}"
 fi
 
 if [ -n "$ip_foreign" ] && [ -n "$ip_russian" ]; then
