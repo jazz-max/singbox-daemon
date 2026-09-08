@@ -20,6 +20,11 @@
     ],
     "rules": [
       {
+        "rule_set": ["force-proxy-domains"],
+        "action": "route",
+        "server": "dns-proxy"
+      },
+      {
         "rule_set": ["ru-direct-domains"],
         "action": "route",
         "server": "dns-ru"
@@ -68,6 +73,12 @@
         "tag": "ru-direct-domains",
         "format": "source",
         "path": "/var/lib/sing-box/rulesets/ru-direct-domains.json"
+      },
+      {
+        "type": "local",
+        "tag": "force-proxy-domains",
+        "format": "source",
+        "path": "/var/lib/sing-box/rulesets/force-proxy-domains.json"
       }
     ],
     "rules": [
@@ -93,6 +104,11 @@
         "ip_cidr": ["127.0.0.0/8", "169.254.0.0/16", "224.0.0.0/4"],
         "action": "route",
         "outbound": "direct"
+      },
+      {
+        "rule_set": ["force-proxy-domains"],
+        "action": "route",
+        "outbound": "proxy"
       },
       {
         "rule_set": ["ru-direct-domains"],

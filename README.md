@@ -326,15 +326,35 @@ sudo cp /var/lib/sing-box/rulesets/ru-ip.srs.prev \
 
 ### Добавить домен в оверрайд
 
-Если российский сервис на не-`.ru` домене поехал через туннель — впишите его в
-`rulesets/ru-direct-domains.json` и обновите:
+Оверрайдов два, они зеркальны друг другу:
+
+| Файл | Для чего | Приоритет |
+|---|---|---|
+| `rulesets/force-proxy-domains.json` | домен **всегда** через туннель | выше |
+| `rulesets/ru-direct-domains.json` | домен **всегда** напрямую | ниже |
+
+Если российский сервис на не-`.ru` домене поехал через туннель — впишите его
+в `ru-direct-domains.json`. Если зарубежный сервис, наоборот, утёк в direct —
+в `force-proxy-domains.json`.
+
+Второй случай возникает не только при явной ошибке. Правило `action: resolve`
+в `route.rules` резолвит домен через `dns-ru` (Yandex DNS, см.
+`default_domain_resolver`), а у крупных CDN есть российские ноды. Если такой
+резолвер вернёт для зарубежного сервиса IP из российской подсети, домен
+совпадёт с `ru-ip` и уйдёт напрямую — со всеми последствиями вроде
+геоблокировки на стороне сервиса. `force-proxy-domains` стоит в правилах
+**выше** и `resolve`, и `ru-ip`, поэтому решает по домену и до резолва.
+
+Обновить:
 
 ```bash
-sudo cp rulesets/ru-direct-domains.json /var/lib/sing-box/rulesets/
+sudo cp rulesets/force-proxy-domains.json rulesets/ru-direct-domains.json \
+        /var/lib/sing-box/rulesets/
+sudo launchctl kickstart -k system/com.singbox.daemon
 ```
 
-Файл в формате `source`, перекомпиляция не нужна. Он влияет сразу на две вещи:
-маршрутизацию и выбор DNS-резолвера.
+Файлы в формате `source`, перекомпиляция не нужна. Оба влияют сразу на две
+вещи: маршрутизацию и выбор DNS-резолвера.
 
 ---
 
@@ -377,7 +397,7 @@ sudo ./scripts/uninstall.sh --keep-binary   # оставить /usr/local/bin/si
 | `/usr/local/bin/sing-box` | бинарник 1.13.16, sha256 проверяется при установке |
 | `/etc/sing-box/config.json` | конфиг, `600 root:wheel` (содержит секреты) |
 | `/var/lib/sing-box/` | рабочий каталог, `cache.db` |
-| `/var/lib/sing-box/rulesets/` | `ru-ip.srs`, `ru-ip.srs.prev`, `ru-direct-domains.json` |
+| `/var/lib/sing-box/rulesets/` | `ru-ip.srs`, `ru-ip.srs.prev`, `ru-direct-domains.json`, `force-proxy-domains.json` |
 | `/var/log/sing-box/` | логи |
 | `/usr/local/libexec/sing-box/` | `build-ruleset.sh`, `aggregate.py` |
 | `/Library/LaunchDaemons/com.singbox.daemon.plist` | демон |
@@ -390,7 +410,8 @@ sudo ./scripts/uninstall.sh --keep-binary   # оставить /usr/local/bin/si
 config/config.template.json    шаблон без секретов (в git)
 config/outbounds.example.json  образец структуры подписки (в git)
 config/secrets/outbounds.json  ваша подписка (в git НЕ попадает)
-rulesets/ru-direct-domains.json доменный оверрайд (в git)
+rulesets/ru-direct-domains.json  оверрайд «всегда напрямую» (в git)
+rulesets/force-proxy-domains.json оверрайд «всегда через туннель» (в git)
 scripts/                       установка, сборка списка, проверки, откат
 launchd/                       plist-файлы и конфиг ротации
 NOTES.md                       разбор каждого поля конфигурации

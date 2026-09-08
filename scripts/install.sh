@@ -141,12 +141,14 @@ install -o root -g wheel -m 0755 "${SCRIPT_DIR}/build-ruleset.sh" "${LIBEXEC_DIR
 install -o root -g wheel -m 0755 "${SCRIPT_DIR}/aggregate.py"     "${LIBEXEC_DIR}/aggregate.py"
 ok "${LIBEXEC_DIR}"
 
-# --- 4. Доменный оверрайд ---------------------------------------------------
-log "Устанавливаю доменный список-оверрайд"
-install -o root -g wheel -m 0644 \
-    "${PROJECT_DIR}/rulesets/ru-direct-domains.json" \
-    "${RULESET_DIR}/ru-direct-domains.json"
-ok "${RULESET_DIR}/ru-direct-domains.json"
+# --- 4. Доменные оверрайды --------------------------------------------------
+log "Устанавливаю доменные списки-оверрайды"
+for rs in ru-direct-domains force-proxy-domains; do
+    install -o root -g wheel -m 0644 \
+        "${PROJECT_DIR}/rulesets/${rs}.json" \
+        "${RULESET_DIR}/${rs}.json"
+    ok "${RULESET_DIR}/${rs}.json"
+done
 
 # --- 5. Список российских подсетей -----------------------------------------
 if [ -f "${RULESET_DIR}/ru-ip.srs" ]; then
