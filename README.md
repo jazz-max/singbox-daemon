@@ -12,6 +12,24 @@
 
 ---
 
+## Сервер (VPS) — откуда берутся outbound'ы
+
+Демон ходит на собственный VPS за рубежом: основной канал **Hysteria 2** (443/udp, salamander),
+запасной **VLESS+Reality** (443/tcp). В `config/secrets/outbounds.json` (в git не попадает): selector `proxy` →
+urltest `auto` → Hysteria2 + VLESS — urltest сам переключается, если один канал умер.
+
+Адреса и ключи сервера, установка, смена сервера при блокировке, рунбук — в приватной документации
+`~/scripts/HYSTERIA2-README.md` (§6 — про этот проект).
+
+> Сервер с VLESS должен работать на **Xray 26.3.27**: Xray 26.10.x отвергает Reality-клиент sing-box 1.13
+> (`reality verification failed`).
+После правки `outbounds.json`: `sudo ./scripts/install.sh` → (`preflight.sh`) →
+`sudo launchctl kickstart -k system/com.singbox.daemon`.
+
+> Перед запуском **полностью закрыть Hiro VPN**: он режет UDP/443, и Hysteria 2 выглядит мёртвой при живом сервере.
+
+---
+
 ## Порядок установки
 
 Три шага, и второй пропускать нельзя.
@@ -59,10 +77,13 @@ sudo ./scripts/install.sh --enable-daemon
 
 ```bash
 curl -s https://api.ipify.org                  # зарубежный сервис -> должен показать IP прокси
-curl -s https://yandex.ru/internet/api/v0/ip   # российский сервис  -> должен показать ваш IP
+curl -s https://ip.beget.ru                    # российский сервис  -> должен показать ваш IP
 ```
 
 Адреса обязаны **различаться**. Совпали — split-tunneling не работает.
+
+> `yandex.ru/internet/api/v0/ip` с 2026-10 всегда отвечает `"127.0.0.1"` — как эхо-сервис больше не годится,
+> заменён на `ip.beget.ru` (Beget, адрес в RU-списке → идёт напрямую).
 
 Полезный приём: снимите оба значения до установки, пока весь трафик идёт одним
 путём. Тогда после запуска демона сразу видно, какой из адресов сменился.
@@ -139,6 +160,18 @@ sudo launchctl kickstart -k system/com.singbox.daemon
 sudo launchctl bootout system/com.singbox.daemon      # остановить (туннель пропадёт)
 sudo launchctl bootstrap system /Library/LaunchDaemons/com.singbox.daemon.plist
 ```
+
+### RustDesk не запускается при поднятом туннеле
+
+RustDesk 1.4.8 падает на старте (`default-net … unix.rs:178: index out of bounds`),
+пока поднят TUN. Уже запущенному туннель не мешает. Запускать так:
+
+```bash
+./scripts/rustdesk-start.sh
+```
+
+Скрипт сначала пробует запустить RustDesk как есть; если тот падает — на ~10 с
+останавливает демон, запускает RustDesk и поднимает демон обратно (в том числе по Ctrl-C).
 
 ### Состояние
 
