@@ -161,6 +161,16 @@ sudo launchctl bootout system/com.singbox.daemon      # остановить (т
 sudo launchctl bootstrap system /Library/LaunchDaemons/com.singbox.daemon.plist
 ```
 
+### Ярлыки на рабочем столе
+
+```bash
+./scripts/desktop-shortcuts.sh      # без sudo
+```
+
+Кладёт на рабочий стол `VPN вкл.app` и `VPN выкл.app`: двойной клик → окно пароля
+администратора → уведомление. «Выкл» только выгружает службу, автозапуск остаётся —
+после перезагрузки туннель поднимется сам.
+
 ### RustDesk не запускается при поднятом туннеле
 
 RustDesk 1.4.8 падает на старте (`default-net … unix.rs:178: index out of bounds`),
