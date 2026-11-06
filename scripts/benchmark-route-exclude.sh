@@ -206,7 +206,7 @@ run_variant() {
     say "    первый HTTPS-запрос: ${curl_s} с"
 
     ip_foreign="$(curl -sS -m 20 https://api.ipify.org 2>/dev/null | tr -d '[:space:]')"
-    ip_russian="$(curl -sS -m 20 https://ip.beget.ru 2>/dev/null | tr -d '[:space:]"')"
+    ip_russian="$(curl -sS -m 20 https://ip.mail.ru 2>/dev/null | sed -nE 's/.*IP: ([0-9]{1,3}(\.[0-9]{1,3}){3}).*/\1/p' | head -1)"
     say "    зарубежный сервис видит: ${ip_foreign:-недоступен}"
     say "    российский сервис видит: ${ip_russian:-недоступен}"
     if [ -n "$ip_foreign" ] && [ -n "$ip_russian" ] && [ "$ip_foreign" != "$ip_russian" ]; then

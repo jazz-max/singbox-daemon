@@ -7,7 +7,7 @@
 #
 # Смысл главной проверки: два эхо-сервиса должны показать РАЗНЫЕ адреса.
 #   api.ipify.org (зарубежный) -> идёт через туннель  -> покажет IP прокси
-#   ip.beget.ru   (российский) -> идёт напрямую       -> покажет ваш IP от провайдера
+#   ip.mail.ru    (российский) -> идёт напрямую       -> покажет ваш IP от провайдера
 #   (yandex.ru/internet/api/v0/ip с 2026-10 всегда отвечает "127.0.0.1" — не годится)
 # Если оба показали одно и то же — split-tunneling не работает.
 
@@ -76,10 +76,16 @@ head_ "Разделение трафика (главная проверка)"
 # поднимается, VLESS-сессия устанавливается, таблица маршрутов достраивается.
 # Одна неудачная попытка в такой момент — не признак поломки, поэтому
 # повторяем несколько раз с паузой.
+# $3 (необязательно) — sed-выражение, вынимающее IP из HTML-ответа. Без него
+# ответ целиком обязан быть IP-адресом.
 fetch_retry() {
-    local url="$1" attempts="${2:-3}" out=""
+    local url="$1" attempts="${2:-3}" extract="${3:-}" out=""
     for i in $(seq 1 "$attempts"); do
-        out="$(curl -sS -m "$TIMEOUT" "$url" 2>/dev/null | tr -d '[:space:]"')"
+        if [ -n "$extract" ]; then
+            out="$(curl -sS -m "$TIMEOUT" "$url" 2>/dev/null | sed -nE "$extract" | head -1)"
+        else
+            out="$(curl -sS -m "$TIMEOUT" "$url" 2>/dev/null | tr -d '[:space:]"')"
+        fi
         # Принимаем только настоящий внешний IPv4: HTML-заглушка или 127.x от сломанного
         # эхо-сервиса не должны засчитываться как ответ.
         if printf '%s' "$out" | grep -qE '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' && [ "${out#127.}" = "$out" ]; then
@@ -93,7 +99,8 @@ fetch_retry() {
 }
 
 ip_foreign="$(fetch_retry https://api.ipify.org 3)"
-ip_russian="$(fetch_retry https://ip.beget.ru 3)"
+# ip.mail.ru (VK, адрес в RU-списке) отдаёт HTML; IP берём из строки «IP: x.x.x.x».
+ip_russian="$(fetch_retry https://ip.mail.ru 3 's/.*IP: ([0-9]{1,3}(\.[0-9]{1,3}){3}).*/\1/p')"
 
 if [ -z "$ip_foreign" ]; then
     bad "зарубежный сервис недоступен — интернет через туннель не работает"
@@ -102,9 +109,9 @@ else
 fi
 
 if [ -z "$ip_russian" ]; then
-    bad "российский сервис (ip.beget.ru) недоступен — прямой выход не работает"
+    bad "российский сервис (ip.mail.ru) недоступен — прямой выход не работает"
 else
-    ok "российский сервис (ip.beget.ru) видит: ${ip_russian}"
+    ok "российский сервис (ip.mail.ru) видит: ${ip_russian}"
 fi
 
 if [ -n "$ip_foreign" ] && [ -n "$ip_russian" ]; then
